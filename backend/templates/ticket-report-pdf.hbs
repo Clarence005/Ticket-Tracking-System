@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Tickets Report</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.4;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            font-size: 12px;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #667eea;
+            margin: 0;
+            font-size: 24px;
+        }
+        .header p {
+            color: #666;
+            margin: 5px 0 0 0;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid #667eea;
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        .stat-label {
+            font-size: 10px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .tickets-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        .tickets-table th,
+        .tickets-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .tickets-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+            font-size: 10px;
+            text-transform: uppercase;
+        }
+        .tickets-table td {
+            font-size: 11px;
+        }
+        .status-badge {
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 9px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-in-progress { background: #cce5ff; color: #004085; }
+        .status-resolved { background: #d4edda; color: #155724; }
+        .status-closed { background: #f8d7da; color: #721c24; }
+        .priority-badge {
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 9px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .priority-low { background: #d1ecf1; color: #0c5460; }
+        .priority-medium { background: #fff3cd; color: #856404; }
+        .priority-high { background: #f8d7da; color: #721c24; }
+        .priority-critical { background: #721c24; color: white; }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #666;
+            font-size: 10px;
+        }
+        .category-stats,
+        .priority-stats {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .category-stats h3,
+        .priority-stats h3 {
+            margin-top: 0;
+            color: #333;
+            font-size: 14px;
+        }
+        .stats-list {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        .stats-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 Tickets Report</h1>
+        <p>Generated on {{generatedAt}} for {{user.name}}</p>
+    </div>
+
+    <!-- Statistics Overview -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">{{stats.total}}</div>
+            <div class="stat-label">Total Tickets</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{stats.pending}}</div>
+            <div class="stat-label">Pending</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{stats.inProgress}}</div>
+            <div class="stat-label">In Progress</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{stats.resolved}}</div>
+            <div class="stat-label">Resolved</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{stats.closed}}</div>
+            <div class="stat-label">Closed</div>
+        </div>
+    </div>
+
+    <!-- Category Statistics -->
+    <div class="category-stats">
+        <h3>Tickets by Category</h3>
+        <div class="stats-list">
+            {{#each stats.byCategory}}
+            <div class="stats-item">
+                <span>{{@key}}</span>
+                <span><strong>{{this}}</strong></span>
+            </div>
+            {{/each}}
+        </div>
+    </div>
+
+    <!-- Priority Statistics -->
+    <div class="priority-stats">
+        <h3>Tickets by Priority</h3>
+        <div class="stats-list">
+            {{#each stats.byPriority}}
+            <div class="stats-item">
+                <span>{{@key}}</span>
+                <span><strong>{{this}}</strong></span>
+            </div>
+            {{/each}}
+        </div>
+    </div>
+
+    <!-- Tickets Table -->
+    <table class="tickets-table">
+        <thead>
+            <tr>
+                <th>Ticket ID</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Resolved</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each tickets}}
+            <tr>
+                <td>{{this.ticketId}}</td>
+                <td>{{this.title}}</td>
+                <td>{{this.category}}</td>
+                <td>
+                    <span class="priority-badge priority-{{this.priority}}">{{this.priority}}</span>
+                </td>
+                <td>
+                    <span class="status-badge status-{{this.status}}">{{this.status}}</span>
+                </td>
+                <td>{{this.createdAt}}</td>
+                <td>{{this.resolvedAt}}</td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <p>This report contains {{stats.total}} tickets</p>
+        <p>Generated from the Ticket Platform System</p>
+    </div>
+</body>
+</html>
