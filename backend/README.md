@@ -90,7 +90,6 @@ npm run dev
 
 ### Analytics & Reports
 - `GET /api/tickets/stats/analytics` - Get ticket analytics
-- `GET /api/tickets/:id/export/pdf` - Export single ticket as PDF
 - `GET /api/tickets/export/report/pdf` - Export tickets report as PDF
 
 ## 🔧 Configuration

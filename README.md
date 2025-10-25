@@ -121,7 +121,6 @@ Email Service (Nodemailer) + PDF Service (Puppeteer)
 
 ### 📊 Analytics & Reports
 - `GET /api/tickets/stats/analytics` - Get ticket statistics and analytics
-- `GET /api/tickets/:id/export/pdf` - Export single ticket as PDF
 - `GET /api/tickets/export/report/pdf` - Export tickets report as PDF
 
 ### 📧 Email Notifications

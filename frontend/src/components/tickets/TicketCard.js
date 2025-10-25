@@ -5,11 +5,21 @@ import './TicketCard.css';
 const TicketCard = ({ ticket }) => {
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Pending': return '#ffc107';
-      case 'In Progress': return '#007bff';
-      case 'Resolved': return '#28a745';
-      case 'Closed': return '#6c757d';
+      case 'open': return '#ffc107';
+      case 'in-progress': return '#007bff';
+      case 'resolved': return '#28a745';
+      case 'closed': return '#6c757d';
       default: return '#6c757d';
+    }
+  };
+
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case 'open': return 'Open';
+      case 'in-progress': return 'In Progress';
+      case 'resolved': return 'Resolved';
+      case 'closed': return 'Closed';
+      default: return status;
     }
   };
 
@@ -40,7 +50,7 @@ const TicketCard = ({ ticket }) => {
             className="status-badge" 
             style={{ backgroundColor: getStatusColor(ticket.status) }}
           >
-            {ticket.status}
+            {getStatusLabel(ticket.status)}
           </span>
           <span 
             className="priority-badge" 

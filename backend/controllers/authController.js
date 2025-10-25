@@ -11,7 +11,7 @@ const generateToken = (userId) => {
 
 // @desc    Register user
 // @route   POST /api/auth/register
-// @access  Public
+
 const register = async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -44,7 +44,7 @@ const register = async (req, res) => {
     } else {
       userData = await UserFactory.createStudent({ name, email, password, studentId });
     }
-
+    console.log("store : " + userData.password);
     const user = new User(userData);
 
     await user.save();
@@ -71,7 +71,7 @@ const register = async (req, res) => {
 
 // @desc    Login user
 // @route   POST /api/auth/login
-// @access  Public
+
 const login = async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -115,7 +115,6 @@ const login = async (req, res) => {
 
 // @desc    Get current user
 // @route   GET /api/auth/me
-// @access  Private
 const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select('-password');

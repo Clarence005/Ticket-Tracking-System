@@ -1,16 +1,16 @@
 const { validationResult } = require('express-validator');
 const Ticket = require('../models/Ticket');
 const pdfService = require('../services/pdfService');
-const TicketStatusStrategy = require('../strategies/TicketStatusStrategy');
-const ticketObserver = require('../observers/TicketObserver');
+
+
 
 // @desc    Get all tickets (filtered by user role)
 // @route   GET /api/tickets
-// @access  Private
+
 const getTickets = async (req, res) => {
   try {
     let query = {};
-    
+
     // Students can only see their own tickets
     if (req.user.role === 'student') {
       query.createdBy = req.user._id;
@@ -31,7 +31,7 @@ const getTickets = async (req, res) => {
 
 // @desc    Get single ticket by ID
 // @route   GET /api/tickets/:id
-// @access  Private
+
 const getTicketById = async (req, res) => {
   try {
     const ticket = await Ticket.findById(req.params.id)
@@ -57,7 +57,7 @@ const getTicketById = async (req, res) => {
 
 // @desc    Create new ticket
 // @route   POST /api/tickets
-// @access  Private
+
 const createTicket = async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -76,12 +76,11 @@ const createTicket = async (req, res) => {
     });
 
     await ticket.save();
-    
+
     // Populate the created ticket
     await ticket.populate('createdBy', 'name email studentId');
 
-    // Notify observers about ticket creation
-    ticketObserver.notify('onTicketCreated', ticket);
+
 
     res.status(201).json({
       message: 'Ticket created successfully',
@@ -95,7 +94,7 @@ const createTicket = async (req, res) => {
 
 // @desc    Update ticket
 // @route   PUT /api/tickets/:id
-// @access  Private
+
 const updateTicket = async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -104,7 +103,7 @@ const updateTicket = async (req, res) => {
     }
 
     const ticket = await Ticket.findById(req.params.id);
-    
+
     if (!ticket) {
       return res.status(404).json({ message: 'Ticket not found' });
     }
@@ -117,7 +116,7 @@ const updateTicket = async (req, res) => {
     // Students cannot update status - only admins can
     const allowedFields = ['title', 'description', 'category', 'priority'];
     const updateData = {};
-    
+
     allowedFields.forEach(field => {
       if (req.body[field] !== undefined) {
         updateData[field] = req.body[field];
@@ -142,33 +141,33 @@ const updateTicket = async (req, res) => {
 
 // @desc    Update ticket status (admin only)
 // @route   PUT /api/tickets/:id/status
-// @access  Private (Admin)
+
 const updateTicketStatus = async (req, res) => {
   try {
     const { status } = req.body;
-    
+
     if (!['open', 'in-progress', 'resolved', 'closed'].includes(status)) {
       return res.status(400).json({ message: 'Invalid status' });
     }
 
-    let ticket = await Ticket.findById(req.params.id);
+    const ticket = await Ticket.findById(req.params.id);
     if (!ticket) {
       return res.status(404).json({ message: 'Ticket not found' });
     }
 
-    // Use Strategy Pattern to handle status change
-    const strategy = TicketStatusStrategy.getStrategy(status);
-    ticket = strategy.handle(ticket);
+    // Update status and related fields
+    ticket.status = status;
+
+    if (status === 'resolved') {
+      ticket.resolvedAt = new Date();
+    }
+
+    if (status === 'closed') {
+      ticket.closedAt = new Date();
+    }
 
     await ticket.save();
     await ticket.populate('createdBy', 'name email studentId');
-
-    // Notify observers about ticket update
-    ticketObserver.notify('onTicketUpdated', ticket);
-    
-    if (status === 'resolved') {
-      ticketObserver.notify('onTicketResolved', ticket);
-    }
 
     res.json({
       message: 'Ticket status updated successfully',
@@ -180,34 +179,11 @@ const updateTicketStatus = async (req, res) => {
   }
 };
 
-// @desc    Delete ticket
-// @route   DELETE /api/tickets/:id
-// @access  Private
-const deleteTicket = async (req, res) => {
-  try {
-    const ticket = await Ticket.findById(req.params.id);
-    
-    if (!ticket) {
-      return res.status(404).json({ message: 'Ticket not found' });
-    }
 
-    // Students can only delete their own tickets
-    if (req.user.role === 'student' && ticket.createdBy.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
-    await Ticket.findByIdAndDelete(req.params.id);
-
-    res.json({ message: 'Ticket deleted successfully' });
-  } catch (error) {
-    console.error('Delete ticket error:', error);
-    res.status(500).json({ message: 'Server error while deleting ticket' });
-  }
-};
 
 // @desc    Add comment to ticket
 // @route   POST /api/tickets/:id/comments
-// @access  Private
+
 const addComment = async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -216,7 +192,7 @@ const addComment = async (req, res) => {
     }
 
     const ticket = await Ticket.findById(req.params.id);
-    
+
     if (!ticket) {
       return res.status(404).json({ message: 'Ticket not found' });
     }
@@ -244,71 +220,20 @@ const addComment = async (req, res) => {
   }
 };
 
-// @desc    Export single ticket as PDF
-// @route   GET /api/tickets/:id/export/pdf
-// @access  Private
-const exportTicketPDF = async (req, res) => {
-  try {
-    const ticket = await Ticket.findById(req.params.id)
-      .populate('createdBy', 'name email studentId')
-      .populate('assignedTo', 'name email')
-      .populate('comments.author', 'name email');
 
-    if (!ticket) {
-      return res.status(404).json({ message: 'Ticket not found' });
-    }
 
-    // Students can only export their own tickets
-    if (req.user.role === 'student' && ticket.createdBy._id.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Access denied' });
-    }
 
-    const pdfBuffer = await pdfService.generateTicketPDF(ticket, req.user);
-
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="ticket-${ticket.ticketId}.pdf"`);
-    res.send(pdfBuffer);
-  } catch (error) {
-    console.error('Export PDF error:', error);
-    res.status(500).json({ message: 'Server error while generating PDF' });
-  }
-};
 
 // @desc    Export tickets report as PDF
 // @route   GET /api/tickets/export/report/pdf
-// @access  Private
+
 const exportTicketsReportPDF = async (req, res) => {
   try {
     let query = {};
-    
+
     // Students can only export their own tickets
     if (req.user.role === 'student') {
       query.createdBy = req.user._id;
-    }
-
-    // Apply filters from query parameters
-    const { status, category, priority, startDate, endDate } = req.query;
-    
-    if (status && status !== 'all') {
-      query.status = status;
-    }
-    
-    if (category && category !== 'all') {
-      query.category = category;
-    }
-    
-    if (priority && priority !== 'all') {
-      query.priority = priority;
-    }
-    
-    if (startDate || endDate) {
-      query.createdAt = {};
-      if (startDate) {
-        query.createdAt.$gte = new Date(startDate);
-      }
-      if (endDate) {
-        query.createdAt.$lte = new Date(endDate);
-      }
     }
 
     const tickets = await Ticket.find(query)
@@ -316,11 +241,10 @@ const exportTicketsReportPDF = async (req, res) => {
       .populate('assignedTo', 'name email')
       .sort({ createdAt: -1 });
 
-    const filters = { status, category, priority, startDate, endDate };
-    const pdfBuffer = await pdfService.generateTicketReportPDF(tickets, req.user, filters);
+    const pdfBuffer = await pdfService.generateTicketReportPDF(tickets, req.user);
 
     const filename = `tickets-report-${new Date().toISOString().split('T')[0]}.pdf`;
-    
+
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.send(pdfBuffer);
@@ -329,14 +253,13 @@ const exportTicketsReportPDF = async (req, res) => {
     res.status(500).json({ message: 'Server error while generating report PDF' });
   }
 };
-
 // @desc    Get ticket statistics for charts
 // @route   GET /api/tickets/stats/analytics
-// @access  Private
+
 const getTicketAnalytics = async (req, res) => {
   try {
     let query = {};
-    
+
     // Students can only see their own ticket stats
     if (req.user.role === 'student') {
       query.createdBy = req.user._id;
@@ -347,9 +270,9 @@ const getTicketAnalytics = async (req, res) => {
     // Status distribution
     const statusStats = {
       open: tickets.filter(t => t.status === 'open').length,
-      'In Progress': tickets.filter(t => t.status === 'In Progress').length,
-      Resolved: tickets.filter(t => t.status === 'Resolved').length,
-      Closed: tickets.filter(t => t.status === 'Closed').length
+      'in-progress': tickets.filter(t => t.status === 'in-progress').length,
+      resolved: tickets.filter(t => t.status === 'resolved').length,
+      closed: tickets.filter(t => t.status === 'closed').length
     };
 
     // Priority distribution
@@ -387,7 +310,7 @@ const getTicketAnalytics = async (req, res) => {
       return Math.ceil((resolved - created) / (1000 * 60 * 60 * 24)); // days
     });
 
-    const avgResolutionTime = resolutionTimes.length > 0 
+    const avgResolutionTime = resolutionTimes.length > 0
       ? Math.round(resolutionTimes.reduce((a, b) => a + b, 0) / resolutionTimes.length)
       : 0;
 
@@ -412,9 +335,7 @@ module.exports = {
   createTicket,
   updateTicket,
   updateTicketStatus,
-  deleteTicket,
   addComment,
-  exportTicketPDF,
   exportTicketsReportPDF,
   getTicketAnalytics
 };

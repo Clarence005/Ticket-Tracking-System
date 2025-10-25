@@ -78,7 +78,7 @@
             font-weight: bold;
             text-transform: uppercase;
         }
-        .status-pending { background: #fff3cd; color: #856404; }
+        .status-open { background: #fff3cd; color: #856404; }
         .status-in-progress { background: #cce5ff; color: #004085; }
         .status-resolved { background: #d4edda; color: #155724; }
         .status-closed { background: #f8d7da; color: #721c24; }
@@ -89,10 +89,10 @@
             font-weight: bold;
             text-transform: uppercase;
         }
-        .priority-low { background: #d1ecf1; color: #0c5460; }
-        .priority-medium { background: #fff3cd; color: #856404; }
-        .priority-high { background: #f8d7da; color: #721c24; }
-        .priority-critical { background: #721c24; color: white; }
+        .priority-Low { background: #d1ecf1; color: #0c5460; }
+        .priority-Medium { background: #fff3cd; color: #856404; }
+        .priority-High { background: #f8d7da; color: #721c24; }
+        .priority-Critical { background: #721c24; color: white; }
         .footer {
             text-align: center;
             margin-top: 30px;
@@ -140,19 +140,19 @@
             <div class="stat-label">Total Tickets</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number">{{stats.pending}}</div>
-            <div class="stat-label">Pending</div>
+            <div class="stat-number">{{stats.byStatus.open}}</div>
+            <div class="stat-label">Open</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number">{{stats.inProgress}}</div>
+            <div class="stat-number">{{stats.byStatus.in-progress}}</div>
             <div class="stat-label">In Progress</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number">{{stats.resolved}}</div>
+            <div class="stat-number">{{stats.byStatus.resolved}}</div>
             <div class="stat-label">Resolved</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number">{{stats.closed}}</div>
+            <div class="stat-number">{{stats.byStatus.closed}}</div>
             <div class="stat-label">Closed</div>
         </div>
     </div>

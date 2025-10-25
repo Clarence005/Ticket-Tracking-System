@@ -6,9 +6,7 @@ const {
   createTicket,
   updateTicket,
   updateTicketStatus,
-  deleteTicket,
   addComment,
-  exportTicketPDF,
   exportTicketsReportPDF,
   getTicketAnalytics
 } = require('../controllers/ticketController');
@@ -51,19 +49,13 @@ router.put('/:id', auth, ticketValidation.update, updateTicket);
 // @access  Private (Admin)
 router.put('/:id/status', [auth, adminAuth], updateTicketStatus);
 
-// @route   DELETE /api/tickets/:id
-// @desc    Delete ticket (students can only delete their own tickets)
-// @access  Private
-router.delete('/:id', auth, deleteTicket);
+
 
 // @route   POST /api/tickets/:id/comments
 // @desc    Add comment to ticket
 // @access  Private
 router.post('/:id/comments', auth, ticketValidation.comment, addComment);
 
-// @route   GET /api/tickets/:id/export/pdf
-// @desc    Export single ticket as PDF
-// @access  Private
-router.get('/:id/export/pdf', auth, exportTicketPDF);
+
 
 module.exports = router;

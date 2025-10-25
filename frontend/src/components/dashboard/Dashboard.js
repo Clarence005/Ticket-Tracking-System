@@ -57,7 +57,7 @@ const Dashboard = () => {
     return {
       all: tickets.length,
       open: tickets.filter(t => t.status === 'open').length,
-      'In Progress': tickets.filter(t => t.status === 'In Progress').length,
+      'in-progress': tickets.filter(t => t.status === 'in-progress').length,
       resolved: tickets.filter(t => t.status === 'resolved').length,
       closed: tickets.filter(t => t.status === 'closed').length,
     };
@@ -101,15 +101,15 @@ const Dashboard = () => {
           <div className="stat-label">Total Tickets</div>
         </div>
         <div className="stat-card pending">
-          <div className="stat-number">{statusCounts.Pending}</div>
-          <div className="stat-label">Pending</div>
+          <div className="stat-number">{statusCounts.open}</div>
+          <div className="stat-label">Open</div>
         </div>
         <div className="stat-card in-progress">
-          <div className="stat-number">{statusCounts['In Progress']}</div>
+          <div className="stat-number">{statusCounts['in-progress']}</div>
           <div className="stat-label">In Progress</div>
         </div>
         <div className="stat-card resolved">
-          <div className="stat-number">{statusCounts.Resolved}</div>
+          <div className="stat-number">{statusCounts.resolved}</div>
           <div className="stat-label">Resolved</div>
         </div>
       </div>
@@ -127,15 +127,28 @@ const Dashboard = () => {
         </div>
         
         <div className="filter-tabs">
-          {Object.entries(statusCounts).map(([status, count]) => (
-            <button
-              key={status}
-              onClick={() => setFilter(status)}
-              className={`filter-tab ${filter === status ? 'active' : ''}`}
-            >
-              {status === 'all' ? 'All' : status} ({count})
-            </button>
-          ))}
+          {Object.entries(statusCounts).map(([status, count]) => {
+            const getStatusLabel = (status) => {
+              switch (status) {
+                case 'all': return 'All';
+                case 'open': return 'Open';
+                case 'in-progress': return 'In Progress';
+                case 'resolved': return 'Resolved';
+                case 'closed': return 'Closed';
+                default: return status;
+              }
+            };
+            
+            return (
+              <button
+                key={status}
+                onClick={() => setFilter(status)}
+                className={`filter-tab ${filter === status ? 'active' : ''}`}
+              >
+                {getStatusLabel(status)} ({count})
+              </button>
+            );
+          })}
         </div>
       </div>
 

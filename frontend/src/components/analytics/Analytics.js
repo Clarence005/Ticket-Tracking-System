@@ -73,6 +73,8 @@ const Analytics = () => {
     }
   };
 
+
+
   if (loading) {
     return (
       <div className="analytics-container">

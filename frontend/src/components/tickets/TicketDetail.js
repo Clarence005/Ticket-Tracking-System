@@ -43,7 +43,7 @@ const TicketDetail = () => {
     setCommentLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post(`/api/tickets/${id}/comments`, 
+      await axios.post(`/api/tickets/${id}/comments`,
         { text: commentText },
         {
           headers: {
@@ -51,7 +51,7 @@ const TicketDetail = () => {
           }
         }
       );
-      
+
       // Refresh ticket to get updated comments
       await fetchTicket();
       setCommentText('');
@@ -67,7 +67,7 @@ const TicketDetail = () => {
     setStatusLoading(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`/api/tickets/${id}/status`, 
+      await axios.put(`/api/tickets/${id}/status`,
         { status: newStatus },
         {
           headers: {
@@ -75,7 +75,7 @@ const TicketDetail = () => {
           }
         }
       );
-      
+
       // Refresh ticket to get updated status
       await fetchTicket();
     } catch (error) {
@@ -86,29 +86,9 @@ const TicketDetail = () => {
     }
   };
 
-  const handleExportPDF = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`/api/tickets/${id}/export/pdf`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        responseType: 'blob'
-      });
-      
-      // Create blob link to download
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `ticket-${ticket.ticketId}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch (error) {
-      console.error('Error exporting PDF:', error);
-      alert('Failed to export PDF');
-    }
-  };
+
+
+
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -117,6 +97,16 @@ const TicketDetail = () => {
       case 'resolved': return '#28a745';
       case 'closed': return '#6c757d';
       default: return '#6c757d';
+    }
+  };
+
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case 'open': return 'Open';
+      case 'in-progress': return 'In Progress';
+      case 'resolved': return 'Resolved';
+      case 'closed': return 'Closed';
+      default: return status;
     }
   };
 
@@ -171,9 +161,6 @@ const TicketDetail = () => {
           ← Back to Dashboard
         </button>
         <div className="header-actions">
-          <button onClick={handleExportPDF} className="btn btn-outline">
-            📄 Export PDF
-          </button>
           {user?.role === 'student' && ticket.createdBy._id === user.id && (
             <Link to={`/edit-ticket/${id}`} className="btn btn-primary">
               ✏️ Edit Ticket
@@ -191,16 +178,16 @@ const TicketDetail = () => {
               <span className="ticket-date">Created {formatDate(ticket.createdAt)}</span>
             </div>
           </div>
-          
+
           <div className="ticket-badges">
-            <span 
-              className="status-badge" 
+            <span
+              className="status-badge"
               style={{ backgroundColor: getStatusColor(ticket.status) }}
             >
-              {ticket.status}
+              {getStatusLabel(ticket.status)}
             </span>
-            <span 
-              className="priority-badge" 
+            <span
+              className="priority-badge"
               style={{ backgroundColor: getPriorityColor(ticket.priority) }}
             >
               {ticket.priority}
@@ -241,18 +228,23 @@ const TicketDetail = () => {
             <div className="admin-actions">
               <h3>Admin Actions</h3>
               <div className="status-buttons">
-                {['Pending', 'In Progress', 'Resolved', 'Closed'].map(status => (
+                {[
+                  { label: 'Open', value: 'open' },
+                  { label: 'In Progress', value: 'in-progress' },
+                  { label: 'Resolved', value: 'resolved' },
+                  { label: 'Closed', value: 'closed' }
+                ].map(({ label, value }) => (
                   <button
-                    key={status}
-                    onClick={() => handleStatusChange(status)}
-                    disabled={statusLoading || ticket.status === status}
-                    className={`status-btn ${ticket.status === status ? 'active' : ''}`}
-                    style={{ 
-                      backgroundColor: ticket.status === status ? getStatusColor(status) : '#f8f9fa',
-                      color: ticket.status === status ? 'white' : '#333'
+                    key={value}
+                    onClick={() => handleStatusChange(value)}
+                    disabled={statusLoading || ticket.status === value}
+                    className={`status-btn ${ticket.status === value ? 'active' : ''}`}
+                    style={{
+                      backgroundColor: ticket.status === value ? getStatusColor(value) : '#f8f9fa',
+                      color: ticket.status === value ? 'white' : '#333'
                     }}
                   >
-                    {status}
+                    {label}
                   </button>
                 ))}
               </div>
@@ -261,7 +253,7 @@ const TicketDetail = () => {
 
           <div className="comments-section">
             <h3>Comments ({ticket.comments?.length || 0})</h3>
-            
+
             <form onSubmit={handleAddComment} className="comment-form">
               <textarea
                 value={commentText}
@@ -273,8 +265,8 @@ const TicketDetail = () => {
               />
               <div className="comment-form-footer">
                 <span className="char-count">{commentText.length}/500</span>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={!commentText.trim() || commentLoading}
                   className="btn btn-primary"
                 >
