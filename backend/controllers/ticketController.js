@@ -10,10 +10,11 @@ const pdfService = require('../services/pdfService');
 const getTickets = async (req, res) => {
   try {
     let query = {};
+    const user = req.admin || req.user;
 
     // Students can only see their own tickets
-    if (req.user.role === 'student') {
-      query.createdBy = req.user._id;
+    if (user && user.role === 'student') {
+      query.createdBy = user._id;
     }
     // Admins can see all tickets (no filter needed)
 
@@ -43,8 +44,10 @@ const getTicketById = async (req, res) => {
       return res.status(404).json({ message: 'Ticket not found' });
     }
 
+    const user = req.admin || req.user;
+
     // Students can only view their own tickets
-    if (req.user.role === 'student' && ticket.createdBy._id.toString() !== req.user._id.toString()) {
+    if (user && user.role === 'student' && ticket.createdBy._id.toString() !== user._id.toString()) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
@@ -66,21 +69,20 @@ const createTicket = async (req, res) => {
     }
 
     const { title, description, category, priority } = req.body;
+    const user = req.admin || req.user;
 
     const ticket = new Ticket({
       title,
       description,
       category,
       priority,
-      createdBy: req.user._id
+      createdBy: user._id
     });
 
     await ticket.save();
 
     // Populate the created ticket
     await ticket.populate('createdBy', 'name email studentId');
-
-
 
     res.status(201).json({
       message: 'Ticket created successfully',
@@ -108,8 +110,10 @@ const updateTicket = async (req, res) => {
       return res.status(404).json({ message: 'Ticket not found' });
     }
 
+    const user = req.admin || req.user;
+
     // Students can only update their own tickets
-    if (req.user.role === 'student' && ticket.createdBy.toString() !== req.user._id.toString()) {
+    if (user && user.role === 'student' && ticket.createdBy.toString() !== user._id.toString()) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
@@ -197,14 +201,16 @@ const addComment = async (req, res) => {
       return res.status(404).json({ message: 'Ticket not found' });
     }
 
+    const user = req.admin || req.user;
+
     // Students can only comment on their own tickets
-    if (req.user.role === 'student' && ticket.createdBy.toString() !== req.user._id.toString()) {
+    if (user && user.role === 'student' && ticket.createdBy.toString() !== user._id.toString()) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
     ticket.comments.push({
       text: req.body.text,
-      author: req.user._id
+      author: user._id
     });
 
     await ticket.save();
@@ -230,10 +236,11 @@ const addComment = async (req, res) => {
 const exportTicketsReportPDF = async (req, res) => {
   try {
     let query = {};
+    const user = req.admin || req.user;
 
     // Students can only export their own tickets
-    if (req.user.role === 'student') {
-      query.createdBy = req.user._id;
+    if (user && user.role === 'student') {
+      query.createdBy = user._id;
     }
 
     const tickets = await Ticket.find(query)
@@ -241,7 +248,7 @@ const exportTicketsReportPDF = async (req, res) => {
       .populate('assignedTo', 'name email')
       .sort({ createdAt: -1 });
 
-    const pdfBuffer = await pdfService.generateTicketReportPDF(tickets, req.user);
+    const pdfBuffer = await pdfService.generateTicketReportPDF(tickets, user);
 
     const filename = `tickets-report-${new Date().toISOString().split('T')[0]}.pdf`;
 
@@ -259,10 +266,11 @@ const exportTicketsReportPDF = async (req, res) => {
 const getTicketAnalytics = async (req, res) => {
   try {
     let query = {};
+    const user = req.admin || req.user;
 
     // Students can only see their own ticket stats
-    if (req.user.role === 'student') {
-      query.createdBy = req.user._id;
+    if (user && user.role === 'student') {
+      query.createdBy = user._id;
     }
 
     const tickets = await Ticket.find(query);

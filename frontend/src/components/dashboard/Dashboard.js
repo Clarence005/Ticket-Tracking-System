@@ -81,7 +81,7 @@ const Dashboard = () => {
     <div className="dashboard-container">
       <div className="dashboard-header">
         <div className="header-content">
-          <h1>Welcome back, {user?.name}! 👋</h1>
+          <h1>Welcome back, {user?.name}!👋</h1>
           <p>Manage your tickets and track their progress</p>
         </div>
         <div className="header-actions">

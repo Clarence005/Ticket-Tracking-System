@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -9,6 +9,9 @@ import Dashboard from './components/dashboard/Dashboard';
 import { CreateTicket, EditTicket, TicketDetail } from './components/tickets';
 import Analytics from './components/analytics/Analytics';
 import Navbar from './components/layout/Navbar';
+import AdminLoginPage from './pages/AdminLoginPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
+import AdminTicketDetailPage from './pages/AdminTicketDetailPage';
 
 // Context
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -76,6 +79,21 @@ function AppContent() {
           path="/analytics" 
           element={user ? <Analytics /> : <Navigate to="/login" />} 
         />
+        
+        {/* Admin Routes */}
+        <Route 
+          path="/admin/login" 
+          element={<AdminLoginPage />} 
+        />
+        <Route 
+          path="/admin/dashboard" 
+          element={<AdminDashboardPage />} 
+        />
+        <Route 
+          path="/admin/ticket/:id" 
+          element={<AdminTicketDetailPage />} 
+        />
+        
         <Route 
           path="/" 
           element={<Navigate to={user ? "/dashboard" : "/login"} />} 

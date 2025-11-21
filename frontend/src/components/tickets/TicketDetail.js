@@ -161,7 +161,7 @@ const TicketDetail = () => {
           ← Back to Dashboard
         </button>
         <div className="header-actions">
-          {user?.role === 'student' && ticket.createdBy._id === user.id && (
+          {user?.role === 'student' && ticket.createdBy?._id === user.id && (
             <Link to={`/edit-ticket/${id}`} className="btn btn-primary">
               ✏️ Edit Ticket
             </Link>
@@ -203,7 +203,7 @@ const TicketDetail = () => {
             </div>
             <div className="info-item">
               <label>Created by</label>
-              <span>{ticket.createdBy.name} ({ticket.createdBy.studentId})</span>
+              <span>{ticket.createdBy?.name || 'Unknown User'} ({ticket.createdBy?.studentId || 'N/A'})</span>
             </div>
             <div className="info-item">
               <label>Last Updated</label>
@@ -280,7 +280,7 @@ const TicketDetail = () => {
                 ticket.comments.map((comment, index) => (
                   <div key={index} className="comment">
                     <div className="comment-header">
-                      <span className="comment-author">{comment.author.name}</span>
+                      <span className="comment-author">{comment.author?.name || 'Unknown User'}</span>
                       <span className="comment-date">{formatDate(comment.createdAt)}</span>
                     </div>
                     <div className="comment-text">{comment.text}</div>

@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/database');
+const AdminFactory = require('./factories/AdminFactory');
 
 // Load environment variables
 dotenv.config();
@@ -42,8 +43,20 @@ app.use((err, req, res, next) => {
   });
 });
 
+// Initialize default admin
+const initializeAdmin = async () => {
+  try {
+    await AdminFactory.createDefaultSuperAdmin();
+  } catch (error) {
+    console.error('Error initializing admin:', error.message);
+  }
+};
+
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
+app.listen(PORT, async () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  
+  // Initialize default admin after server starts
+  await initializeAdmin();
 });
